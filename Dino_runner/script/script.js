@@ -7,6 +7,7 @@ const main = document.querySelector("main");
 const game = document.querySelector(".game");
 
 const dino = document.querySelector('.dino');
+dino.classList.add('dinoIdle')
 
 
 const obstacles = [];
@@ -19,8 +20,10 @@ let countTimeJumpAnim = 0;
 let dinoOnJump = false;
 let timeMinObstacle=25;
 
+
+
 let score = 0;
-let coordScore = [300, 280];
+let coordScore = [450, 280];
 let scoreInMove = false;
 let alreadyMoveScore = false;
 const nbScore = document.querySelector("#nbScore")
@@ -28,8 +31,7 @@ const allScore = document.querySelector("#score")
 
 const title1 = document.querySelector('.title1')
 const title2 = document.querySelector('.title2')
-let coordTitle1 = [2800, 410];
-let coordTitle2 = [2700, 410];
+
 let title1InMove = false;
 let alreadyMoveTitle1 = false;
 let title2InMove = false;
@@ -37,10 +39,14 @@ let alreadyMoveTitle2 = false;
 let timeLongAnimStart=2;
 let timeShortAnimStart=1;
 
+
+let decors=[];
+let timerDecors=10;
+
 let countTimeGame = 0;
 let gameOn = false;
 let gameover = false;
-const intervalGame = setInterval(drawGame, 30);
+const intervalGame = setInterval(drawGame, 20);
 
 
 function handlerKey(event) {
@@ -52,43 +58,34 @@ function handlerKey(event) {
             }
             break;
         case "Enter":
-            if (!gameover) {
+            if ( !gameOn) {
                 main.removeChild(document.querySelector('p'));
                 gameOn = true;
-            } else {
-                main.removeChild(document.querySelector('p'));
+                dino.classList.add('dinoLeft')
                 reloadGame()
             }
-            break;
-        case " ":
-            gameOn = false;
+            else if (gameOn){
+                console.log('oui')
+                terminateGame()
+            }
             break;
     }
 }
 
-function generateObstacle() {
-    const element = document.createElement('div');
-    element.classList.add('obstacle');
-    element.style.transform = `translate(${1000}px,197px)`
-    game.append(element)
-    const obstacle = {
-        element: element,
-        posx: 1000,
-    }
-    obstacles.push(obstacle);
-}
+
 
 function drawGame() {
     if (gameOn) {
         ++countTimeGame;
         moveObstacle()
-        if (score %1000>400 && !timeBetwennObstacle<25 && !alreadyMoveScore) {
+        moveDecors();
+        if (score %1000>400 && !timeBetwennObstacle<35 && !alreadyMoveScore) {
             timeBetwennObstacle = 80;
             nbScore.style.animation = `animScoreStart ${timeShortAnimStart}s`
             alreadyMoveScore = true
             scoreInMove = true
-        } else if (score%1000 > 600 &&  !timeBetwennObstacle<25 && !alreadyMoveTitle1) {
-            timeBetwennObstacle = 170;
+        } else if (score%1000 > 750 &&  !timeBetwennObstacle<35 && !alreadyMoveTitle1) {
+            timeBetwennObstacle = 250;
             title1.style.animation = `animTitle1Start ${timeLongAnimStart}s`
             alreadyMoveTitle1 = true
             title1InMove = true
@@ -97,6 +94,10 @@ function drawGame() {
                 generateObstacle();
                 timeBetwennObstacle = generateNumberAlea(timeMinObstacle, 80);
             }
+        }
+        if (timerDecors===0){
+            timerDecors=generateNumberAlea(1,10)
+            createDecors();
         }
         if (dinoOnJump) {
             moveDinoOnJump()
@@ -161,9 +162,9 @@ function drawGame() {
         score += 1
         nbScore.textContent = "0".repeat(5 - (score).toString().length) + score
         if (score % 500 === 0) {
-            vitesse += 5
+            vitesse += 3
             timeLongAnimStart-=0.2;
-            timeShortAnimStart-=1
+            timeShortAnimStart-=0.2;
         }
         if (score % 1000 === 0) {
             timeMinObstacle--;
@@ -173,8 +174,14 @@ function drawGame() {
             alreadyMoveScore = false
             alreadyMoveTitle1 = false
         }
+        if (score%7===0){
+            dino.classList.toggle('dinoLeft')
+            dino.classList.toggle('dinoRight')
+
+        }
         checkGameOver()
         timeBetwennObstacle--;
+        timerDecors--;
 
     }
 
@@ -196,6 +203,44 @@ function moveDinoOnJump() {
 
 }
 
+function generateObstacle() {
+    const typeObstacle=generateNumberAlea(1,3);
+    switch (typeObstacle){
+        case 1:
+            const element = document.createElement('div');
+            element.classList.add('obstacle');
+            element.style.transform = `translate(${1000}px,197px)`
+            game.append(element)
+            const obstacle = {
+                element: element,
+                posx: 1000,
+            }
+            obstacles.push(obstacle);
+            break;
+        case 2:
+            const element1 = document.createElement('div');
+            element1.classList.add('obstacle');
+            element1.style.transform = `translate(${1000}px,197px)`
+            game.append(element1)
+            const obstacle1 = {
+                element: element1,
+                posx: 1000,
+            }
+            obstacles.push(obstacle1);
+            const element2 = document.createElement('div');
+            element2.classList.add('obstacle');
+            element2.style.transform = `translate(${1060}px,197px)`
+            game.append(element2)
+            const obstacle2 = {
+                element: element2,
+                posx: 1060,
+            }
+            obstacles.push(obstacle2);
+
+        break
+}
+}
+
 function moveObstacle() {
     obstacles.forEach((item, index) => {
         item.posx -= vitesse;
@@ -203,7 +248,7 @@ function moveObstacle() {
             obstacles.splice(index, 1);
             game.removeChild(item.element)
         }
-        item.element.style.transform = `translate(${item.posx}px,197px)`
+        item.element.style.transform = `translate(${item.posx}px,185px)`
     });
 }
 
@@ -222,12 +267,24 @@ function checkGameOver() {
 }
 
 function terminateGame() {
+    
+    
     gameover = true;
-    gameOn = false
+    gameOn = false;
+    scoreInMove=false
+    nbScore.style.animation="";
+    nbScore.style.transform="translate(0px,0px)";
+    title1.style.transform = `translate( 0px , 0px)`
+    title2.style.transform = `translate( 0px , 0px)`
+    title1.style.animation = "";
+    title2.style.animation = "";
+    dino.classList.remove('dinoRight')
+    dino.classList.remove('dinoLeft')
     const p = document.createElement('p')
     p.id = 'pStart'
     p.textContent = "Press enter for restart"
     main.prepend(p);
+    
     allScore.style.animation="animEndScore 1s";
     allScore.style.transform=" translate(-600px,150px) scale(2)"
 }
@@ -246,12 +303,12 @@ function reloadGame() {
     dinoOnJump = false;
 
     score = 0;
-    coordScore = [300, 280];
+    coordScore = [500, 280];
     scoreInMove = false;
     alreadyMoveScore = false;
 
-    coordTitle1 = [2800, 410];
-    coordTitle2 = [2700, 410];
+    coordTitle1 = [3050, 410];
+    coordTitle2 = [3000, 410];
     title1InMove = false;
     alreadyMoveTitle1 = false;
     title2InMove = false;
@@ -274,5 +331,30 @@ function reloadGame() {
 }
 function generateNumberAlea(min, max) {
     return Math.floor(Math.random() * (max - min)) + min;
+}
+
+function createDecors(){
+    const div=document.createElement('div')
+    div.classList.add('decors')
+    div.style.width=`${generateNumberAlea(1,10)}px`
+    div.style.transform="translate(1000px,250px)"
+    game.append(div)
+    decors.push({
+        element:div,
+        posx:1000,
+        posy:250+generateNumberAlea(1,10)
+    })
+}
+
+function moveDecors(){
+    decors.forEach((item,index)=>{
+        item.posx-=vitesse
+        item.element.style.transform = `translate(${item.posx}px,${item.posy}px)`
+        if(item.posx<0){
+            decors.splice(index,1)
+            game.removeChild(item.element)
+        }
+    })
+
 }
 
